@@ -1,6 +1,7 @@
 import React from 'react';
-import App, {fragment} from '../layouts/App.js';
+import App from '../layouts/App.js';
 import withQuery from '../libs/withQuery.js';
+import {createFragment} from '../libs/lokka.js';
 import { createClassroom } from '../mutations/classroom.js';
 
 class Index extends React.Component {
@@ -12,7 +13,7 @@ class Index extends React.Component {
   async handleSubmit(e) {
     e.preventDefault();
     const {name} = this.state;
-    const tenantId = this.props.data.user.tenant.id;
+    const tenantId = this.props.query.user.tenant.id;
     await createClassroom(tenantId, name);
     this.props.refetch();
   }
@@ -23,30 +24,30 @@ class Index extends React.Component {
 
   render() {
     return (
-      <App query={this.props.data}>
-        {!this.props.data.user &&
+      <App user={this.props.query.user}>
+        {!this.props.query.user &&
           <div>
             You need to login bro
           </div>
         }
 
-        {this.props.data.user &&
+        {this.props.query.user &&
           <div>
-            <h3>{this.props.data.user.tenant.name}</h3>
+            <h3>{this.props.query.user.tenant.name}</h3>
             <h3>Classrooms</h3>
             <ul>
-              {this.props.data.user.tenant.classrooms.map(classroom =>
+              {this.props.query.user.tenant.classrooms.map(classroom =>
                 <li>
                   <a href='#' onClick={() => this.handleClassroomSelect(classroom.id)}>{classroom.name}</a> - {classroom._guardiansMeta.count} guardians - <a>delete</a>
                 </li>
               )}
             </ul>
 
-            {this.props.data.Classroom &&
+            {this.props.query.Classroom &&
               <div>
-                <h3>Guardians of {this.props.data.Classroom.name}</h3>
+                <h3>Guardians of {this.props.query.Classroom.name}</h3>
                 <ul>
-                  {this.props.data.Classroom.guardians.map(guardian =>
+                  {this.props.query.Classroom.guardians.map(guardian =>
                     <li>
                       {guardian.id} - {guardian.phone}
                     </li>
@@ -97,33 +98,25 @@ class Index extends React.Component {
   }
 }
 
-const query = `
-  query _($classroomId: ID) {
-    Classroom(id: $classroomId) {
-      name
-      guardians {
-        id
-        archived
-        phone
-        emergencyOnly
-      }
-    }
-    user {
-      tenant {
-        id
-        name
-        classrooms {
+Index.fragments = {
+  query: createFragment(`
+    fragment on Query {
+      user {
+        tenant {
           id
           name
-          _guardiansMeta {
-            count
+          classrooms {
+            id
+            name
+            _guardiansMeta {
+              count
+            }
           }
         }
+        ...${App.fragments.user}
       }
     }
-
-    ...${fragment}
+    `)
   }
-`;
 
-export default withQuery(query, Index, { classroomId: '' });
+export default withQuery(Index, { classroomId: '' });

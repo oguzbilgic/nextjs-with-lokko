@@ -1,17 +1,22 @@
 import React from 'react';
 import withQuery from '../libs/withQuery.js';
-import App, {fragment} from '../layouts/App.js';
+import {createFragment} from '../libs/lokka.js';
+import App from '../layouts/App.js';
 
-const About = ({ data }) => (
-  <App query={data}>
+const About = ({ query }) => (
+  <App user={query.user}>
     <h3>About Us</h3>
   </App>
 )
 
-const query = `
-  query {
-    ...${fragment}
-  }
-`;
+About.fragments = {
+  query: createFragment(`
+    fragment on Query {
+      user {
+        ...${App.fragments.user}
+      }
+    }
+  `)
+}
 
-export default withQuery(query, About);
+export default withQuery(About);

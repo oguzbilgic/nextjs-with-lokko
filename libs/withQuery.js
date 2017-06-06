@@ -1,6 +1,12 @@
 import {query} from './lokka.js'
 
-export default (kuery, Komponent, vars = {}) => {
+export default (Komponent, vars = {}) => {
+  const kuery = `
+    query {
+      ...${Komponent.fragments.query}
+    }
+  `;
+
   return class WithQuery extends React.Component {
     constructor(props) {
       super(props);
@@ -26,9 +32,10 @@ export default (kuery, Komponent, vars = {}) => {
     render() {
       if (this.state.data) {
         return <Komponent
+          url={this.props.url}
           refetch={this.refetch.bind(this)}
           updateVars={this.updateVars.bind(this)}
-          data={this.state.data}/>
+          query={this.state.data}/>
       }
 
       return null;

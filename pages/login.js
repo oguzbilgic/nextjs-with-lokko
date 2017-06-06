@@ -1,5 +1,6 @@
 import React from 'react';
-import App, {fragment} from '../layouts/App.js';
+import {createFragment} from '../libs/lokka.js';
+import App from '../layouts/App.js';
 import withQuery from '../libs/withQuery.js';
 import { signinUser, signoutUser } from '../mutations/user.js';
 
@@ -24,21 +25,21 @@ class Index extends React.Component {
 
   render() {
     return (
-      <App query={this.props.data}>
-        {this.props.data.user &&
+      <App user={this.props.query.user}>
+        {this.props.query.user &&
           <div>
             <h3>Account</h3>
-            <p> {this.props.data.user.email} </p>
+            <p> {this.props.query.user.email} </p>
 
             <h3>School</h3>
-            <p> {this.props.data.user.tenant.name} </p>
+            <p> {this.props.query.user.tenant.name} </p>
 
 
             <button onClick={this.handleLogout.bind(this)}>Log out</button>
           </div>
         }
 
-        {!this.props.data.user &&
+        {!this.props.query.user &&
           <div>
             <h3>Login</h3>
             <form onSubmit={this.handleLogin.bind(this)}>
@@ -90,17 +91,19 @@ class Index extends React.Component {
   }
 }
 
-const query = `
-  query {
-    user {
-      id
-      email
-      tenant {
-        name
+Index.fragments = {
+  query: createFragment (`
+    fragment on Query {
+      user {
+        id
+        email
+        tenant {
+          name
+        }
+        ...${App.fragments.user}
       }
-    }
-    ...${fragment}
-  }
-`;
+    }`
+  )
+}
 
-export default withQuery(query, Index);
+export default withQuery(Index);
